@@ -117,7 +117,7 @@ public class OldSparky extends JavaPlugin
     public void onEnable() {
         this.listener = new SparkListener();
         getServer().getPluginManager().registerEvents(listener, this);
-        getServer().broadcastMessage("SpawnThrottler enabled!");
+        getServer().broadcastMessage("OldSparky enabled!");
     }
 
 }
