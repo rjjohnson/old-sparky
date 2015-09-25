@@ -1,0 +1,12 @@
+main: com.subtextgroup.mcp.ospark.OldSparky
+name: OldSparky
+version: 1.0
+author: ryanjohnson
+description: Electrocution for Minecraft
+commands:
+  sparky:
+    description: Makes target block an OldSparky spark target
+    usage: /oldsparky
+    permission: oldsparky.oldsparky
+    permission-message: You don't have the oldsparky.oldsparky permission!
+  
