@@ -1,6 +1,7 @@
 package com.subtextgroup.mcp.ospark;
 
-import org.bukkit.Location;
+import java.util.Set;
+
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
@@ -10,7 +11,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.BlockIterator;
 
 public class OldSparky extends JavaPlugin
 {
@@ -20,16 +20,17 @@ public class OldSparky extends JavaPlugin
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if(command.getName().equalsIgnoreCase("oldsparky")) {
             Player player = (Player)sender;
-            Location loc = player.getLocation();
-            BlockIterator bit = new BlockIterator(loc, 10);
+            Block target = player.getTargetBlock((Set) null, 10);
+            /*BlockIterator bit = new BlockIterator(loc, 10);
             Block next;
             Block target = null;
-            while(bit.hasNext()) {
+            while(bit.hasNext() && target == null) {
                 next = bit.next();
                 if(!next.isEmpty() && !next.isLiquid()) {
                     target = next;
+                    
                 }
-            }
+            }*/
             if(target == null) {
                 return false;
             }

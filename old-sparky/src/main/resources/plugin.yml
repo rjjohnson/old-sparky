@@ -4,7 +4,7 @@ version: 1.0
 author: ryanjohnson
 description: Electrocution for Minecraft
 commands:
-  sparky:
+  oldsparky:
     description: Makes target block an OldSparky spark target
     usage: /oldsparky
     permission: oldsparky.oldsparky
