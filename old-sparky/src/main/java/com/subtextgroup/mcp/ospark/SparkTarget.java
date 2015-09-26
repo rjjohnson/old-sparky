@@ -37,7 +37,7 @@ public class SparkTarget implements ConfigurationSerializable {
 
     public SparkTarget(Map<String, Object> props) {
         this.loc = Location.deserialize((Map<String, Object>)props.get("loc"));
-        this.strikeCount = Integer.valueOf((String)props.get("strike-count"));
+        this.strikeCount = (Integer)props.get("strike-count");
     }
     
     @Override
