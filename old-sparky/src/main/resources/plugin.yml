@@ -6,7 +6,7 @@ description: Electrocution for Minecraft
 commands:
   oldsparky:
     description: Makes target block an OldSparky spark target
-    usage: /oldsparky
+    usage: /oldsparky [number of strikes, 1-10]
     permission: oldsparky.oldsparky
     permission-message: You don't have the oldsparky.oldsparky permission!
   

@@ -1,113 +1,73 @@
 package com.subtextgroup.mcp.ospark;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
-import org.bukkit.metadata.MetadataValue;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class OldSparky extends JavaPlugin
-{
+public class OldSparky extends JavaPlugin {
 
+    private static class RangeException extends Exception {
+
+    }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if(command.getName().equalsIgnoreCase("oldsparky")) {
-            Player player = (Player)sender;
-            Block target = player.getTargetBlock((Set) null, 10);
-            /*BlockIterator bit = new BlockIterator(loc, 10);
-            Block next;
-            Block target = null;
-            while(bit.hasNext() && target == null) {
-                next = bit.next();
-                if(!next.isEmpty() && !next.isLiquid()) {
-                    target = next;
-                    
+    public boolean onCommand(CommandSender sender, Command command,
+            String label, String[] args) {
+        if (command.getName().equalsIgnoreCase("oldsparky")) {
+            Integer numStrikes = 1;
+            if (args.length == 1) {
+                try {
+                    numStrikes = Integer.parseInt(args[0]);
+                    if (numStrikes > 10) {
+                        throw new RangeException();
+                    }
+                } catch (NumberFormatException | RangeException e) {
+                    sender.sendMessage("Not a valid strike count: " + args[0]);
+                    return false;
                 }
-            }*/
-            if(target == null) {
+            } else if (args.length > 1) {
+                sender.sendMessage(command.getUsage());
                 return false;
             }
-            
-            final JavaPlugin owningPlugin = this;
+            Player player = (Player) sender;
+            Block target = player.getTargetBlock((Set) null, 10);
+            if (target == null) {
+                return false;
+            }
+
             target.setType(Material.REDSTONE_LAMP_OFF);
-            
-            target.setMetadata("spark-target", new MetadataValue() {
-                
-                @Override
-                public Object value() {
-                    return "old-sparky";
-                }
-                
-                @Override
-                public void invalidate() {
-                    // TODO Auto-generated method stub
-                    
-                }
-                
-                @Override
-                public Plugin getOwningPlugin() {
-                    return owningPlugin;
-                }
-                
-                @Override
-                public String asString() {
-                    // TODO Auto-generated method stub
-                    return "1";
-                }
-                
-                @Override
-                public short asShort() {
-                    // TODO Auto-generated method stub
-                    return 1;
-                }
-                
-                @Override
-                public long asLong() {
-                    // TODO Auto-generated method stub
-                    return 1;
-                }
-                
-                @Override
-                public int asInt() {
-                    // TODO Auto-generated method stub
-                    return 1;
-                }
-                
-                @Override
-                public float asFloat() {
-                    // TODO Auto-generated method stub
-                    return 1.0f;
-                }
-                
-                @Override
-                public double asDouble() {
-                    // TODO Auto-generated method stub
-                    return 1.0d;
-                }
-                
-                @Override
-                public byte asByte() {
-                    return 1;
-                }
-                
-                @Override
-                public boolean asBoolean() {
-                    return true;
-                }
-            });
+
+            target.setMetadata("spark-target", new FixedMetadataValue(this,
+                    numStrikes));
+            List<SparkTarget> targets = (List<SparkTarget>) getConfig()
+                    .getList("spark-targets", new ArrayList<SparkTarget>());
+            if (!targets.contains(target.getLocation())) {
+                SparkTarget st = new SparkTarget(target.getLocation(),
+                        numStrikes);
+                targets.add(st);
+                getConfig().set("spark-targets", targets);
+                saveConfig();
+            }
+
             return true;
         }
         return false;
     }
 
     SparkListener listener = null;
+
     @Override
     public void onDisable() {
         HandlerList.unregisterAll(listener);
@@ -115,9 +75,48 @@ public class OldSparky extends JavaPlugin
 
     @Override
     public void onEnable() {
-        this.listener = new SparkListener();
+        ConfigurationSerialization.registerClass(SparkTarget.class);
+        this.listener = new SparkListener(this);
         getServer().getPluginManager().registerEvents(listener, this);
+        loadSparkTargets();
         getServer().broadcastMessage("OldSparky enabled!");
+    }
+
+    private void loadSparkTargets() {
+        List<SparkTarget> targets = (List<SparkTarget>) getConfig().getList(
+                "spark-targets", new ArrayList<SparkTarget>());
+        Iterator<SparkTarget> titer = targets.iterator();
+        boolean updated = false;
+        while (titer.hasNext()) {
+            SparkTarget st = titer.next();
+            Block target = st.getLoc().getBlock();
+            if (target != null
+                    && (Material.REDSTONE_LAMP_OFF == target.getType() || Material.REDSTONE_LAMP_ON == target
+                            .getType())) {
+                target.setMetadata("spark-target", new FixedMetadataValue(this,
+                        st.getStrikeCount()));
+            } else {
+                titer.remove();
+                updated = true;
+            }
+        }
+        if (updated) {
+            getConfig().set("spark-targets", targets);
+            saveConfig();
+        }
+    }
+
+    protected void removeSparkTarget(Location loc) {
+        List<SparkTarget> targets = (List<SparkTarget>) getConfig().getList(
+                "spark-targets", new ArrayList<SparkTarget>());
+        Iterator<SparkTarget> titer = targets.iterator();
+        while (titer.hasNext()) {
+            if (titer.next().getLoc().equals(loc)) {
+                titer.remove();
+            }
+        }
+        getConfig().set("spark-targets", targets);
+        saveConfig();
     }
 
 }
